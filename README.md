@@ -11,7 +11,7 @@
 ---|---
 신제헌 | Full-stack, AI
 김채린 | Front-end
-최  준 | Back-end
+최준 | Back-end
 한기표 | Front-end
 
 <br></br>
