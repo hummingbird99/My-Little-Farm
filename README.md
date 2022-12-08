@@ -29,7 +29,7 @@
 * Nginx로 다량 동시 접속 요청에 대비
 <br></br><br></br>
 
-## 🌵서비스 구조도
+## 🌵시스템 구조도
 <img width="800px" src="https://user-images.githubusercontent.com/119592771/206533823-cf2c694a-b343-4a98-a6f0-ddb8159d92d1.png"/>
 <br></br>
 
