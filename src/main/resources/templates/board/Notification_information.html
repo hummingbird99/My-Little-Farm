@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>질병정보</title>
+    <link rel="icon" type="images/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="stylesheet" href="/css/import.css">
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/header.js"></script>
+
+    <script>
+        // 사진업로드 
+        function ResizeImage() {
+
+            let fileInfo = document.getElementById("attachFile").files[0];
+            if (fileInfo == undefined) {
+                document.getElementById("output").src = "images/select_img.jpg";
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function () {
+                console.log("INDEX #02");
+                // @details 업로드한 파일의 URL을 가져온다.
+                document.getElementById("output").src = reader.result;
+                // @breif 썸네일 이미지 생성
+                let tempImage = new Image();    // @details drawImage 메서드에 넣기 위해 이미지 객체화
+                tempImage.src = reader.result;    // @details data-uri를 이미지 객체에 주입
+
+            };
+            if (fileInfo) {
+                console.log("INDEX #01");
+                reader.readAsDataURL(fileInfo);
+            }
+        }
+
+        // AI 작물 판별 AJAX
+        function submitFiles() {
+            let formData = new FormData();
+            //let files = $("input[name=attachFile]")[0].files;
+            let files = document.getElementById("attachFile").files[0];
+
+            if (files == undefined) {
+                alert("사진을 등록 해주세요.");
+                return;
+            }
+            formData.append("attachFile", files);
+            var arrval;
+            $.ajax({
+                url: 'http://3.36.44.15:2431/predict',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                success: function (data) {
+                    arrval = data.split('_');
+                    predict(arrval);
+                },
+                error: function (e) {
+
+                   $('#resText')[0].innerHTML = e.responseText;
+                   arrval = e.responseText.split('_');
+                   predict(arrval);
+                }
+            });
+        }
+
+        function predict(val) {
+            // 작물 판별 정보
+            var crop = { '1': '딸기', '2': '토마토', '3': '파프리카', '4': '오이', '5': '고추', '6': '시설포도' };
+            var disease = {
+
+                '1': { 'a1': '딸기잿빛곰팡이병', 'a2': '딸기흰가루병', 'b1': '냉해피해', 'b6': '다량원소결핍 (N)', 'b7': '다량원소결핍 (P)', 'b8': '다량원소결핍 (K)' },
+                '2': { 'a5': '토마토흰가루병', 'a6': '토마토잿빛곰팡이병', 'b2': '열과', 'b3': '칼슘결핍', 'b6': '다량원소결핍 (N)', 'b7': '다량원소결핍 (P)', 'b8': '다량원소결핍 (K)' },
+                '3': { 'a9': '파프리카흰가루병', 'a10': '파프리카잘록병', 'b3': '칼슘결핍', 'b6': '다량원소결핍 (N)', 'b7': '다량원소결핍 (P)', 'b8': '다량원소결핍 (K)' },
+                '4': { 'a3': '오이노균병', 'a4': '오이흰가루병', 'b1': '냉해피해', 'b6': '다량원소결핍 (N)', 'b7': '다량원소결핍 (P)', 'b8': '다량원소결핍 (K)' },
+                '5': { 'a7': '고추탄저병', 'a8': '고추흰가루병', 'b3': '칼슘결핍', 'b6': '다량원소결핍 (N)', 'b7': '다량원소결핍 (P)', 'b8': '다량원소결핍 (K)' },
+                '6': { 'a11': '시설포도탄저병', 'a12': '시설포도노균병', 'b4': '일소피해', 'b5': '축과병' }
+            };
+            var name = crop[val[0]];
+            var condition ="정상";
+            if(val[1] != "00")
+            {
+                condition = disease[val[0]][val[1]];    
+                           
+            }
+            $('#cropname')[0].innerHTML = name;
+            $('#cropdisease')[0].innerHTML = condition;
+        }
+
+        function selectFile(){
+            $('#cropname')[0].innerHTML = "";
+            $('#cropdisease')[0].innerHTML = "";
+            document.getElementById("output").src = "images/select_img.jpg";
+            document.getElementById('attachFile').click();
+
+        }
+    </script>
+</head>
+
+<body>
+    <header class="ColorH">
+        <h1><a href="/"><img src="/images/Color_Logo.png" alt=""></a></h1>
+        <nav>
+            <button type="button" class="bobile">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="gnb clear">
+                <li>운영정보
+                    <ul>
+                        <li><a href="/Notification_info">질병정보</a></li>
+                        <li><a href="/operation_info">작물 농사 방법</a></li>
+                    </ul>
+                </li>
+                <li>분양정보
+                    <ul>
+                        <li><a href="/Sale_list">분양리스트</a></li>
+                    </ul>
+                </li>
+                <li>소통
+                    <ul>
+                        <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                        <li><a href="/bbs/list/qna">질문</a></li>
+                        <li><a href="/bbs/list/notice">공지사항</a></li>
+                    </ul>
+                </li>
+                <li>공유
+                    <ul>
+                        <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                        <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                    </ul>
+                </li>
+                <li><a href="/MyPage">마이캘린더</a></li>
+            </ul>
+        </nav>
+        <div sec:authorize="isAnonymous()" class="login"><a href="/login">로그인 </a><a href="/signup">| 회원가입</a></div>
+        <div sec:authorize="isAuthenticated()" class="logout"><a href="#" onclick="$('#logout').submit()">로그아웃</a></div>
+
+        <form id="logout" action="/logout" method="POST">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+    </header>
+
+    <section class="operationS tabPg active" id="OStab1">
+        <h2>질병정보</h2>
+        <div class="content-center"></div>
+        <table>
+            <thead>
+                <tr>
+                    <td class="select_img_td">
+                        <div>
+                            <img src="/images/select_img.jpg" onclick="selectFile();" id="output" style="cursor: pointer; " >
+                        </div>
+                    </td>
+                </tr>
+                <tr class="btn-wrap clearfix">
+                    <td class="">
+                        <div>
+                            <input id="attachFile" name="attachFile" type="file" onchange="ResizeImage()"
+                                accept="image/jpeg" align="content-left" alt="사진등록"
+                            style="display:none;">
+                        </div>
+                        <div>
+                            <button type="button" onclick="selectFile();" style="border: none; background: #627200;  height: 40px;
+        font-size: 12px; border-radius: 7px; color: #fff;cursor: pointer;width:100%;">사진등록</button>
+                        </div>
+                        <br>
+                        <div>
+                            <button type="button" onclick="submitFiles();" style="border: none; background: #627200;  height: 40px;
+        font-size: 12px; border-radius: 7px; color: #fff;cursor: pointer;width:100%;">판별하기</button>
+                        </div>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+        <div rowspan="2" class="lasttd" align="center">
+            <div id="resText"></div>
+            <div id="cropname"></div>
+            <div id="cropdisease"></div>
+        </div>
+    </section>
+
+    <footer>
+        <div>
+            <h1><a href="/">My Little Farm</a></h1>
+            <div>
+                <ul>
+                    <li>운영정보
+                        <ul>
+                            <li><a href="/Notification_info">질병정보</a></li>
+                            <li><a href="/operation_info">작물 농사 방법</a></li>
+                        </ul>
+                    </li>
+                    <li>분양정보
+                        <ul>
+                            <li><a href="/Sale_list">분양리스트</a></li>
+                        </ul>
+                    </li>
+                    <li>소통
+                        <ul>
+                            <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                            <li><a href="/bbs/list/qna">질문</a></li>
+                            <li><a href="/bbs/list/notice">공지사항</a></li>
+                        </ul>
+                    </li>
+                    <li>공유
+                        <ul>
+                            <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                            <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/MyPage">마이캘린더</a></li>
+                </ul>
+            </div>
+            <div>
+                <address>
+                    <p>E-Mail :<a href="gksrlvy7138@gmail.com"> gksrlvy7138@gmail.com</a></p>
+                    <p>" 주소 : 서울시 서초구 서초대로74길 33 비트빌 3층"</p>
+                    <p>Tel :<a href="tel:+820234863456"> 02 - 3486 - 3456</a></p>
+                </address>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

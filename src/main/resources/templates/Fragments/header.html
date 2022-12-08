@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+    <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>마이페이지</title>
+    <link rel="icon" type="images/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="stylesheet" href="/css/import.css">
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/header.js"></script>
+</head>
+<body>
+<header class="ColorH">
+    <h1><a href="/"><img src="/images/Color_Logo.png" alt=""></a></h1>
+    <nav>
+        <button type="button" class="bobile">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="gnb clear">
+            <li>운영정보
+                <ul>
+                    <li><a href="Notification_information.html">질병정보</a></li>
+                    <li><a href="operation_information.html ">작물 농사 방법</a></li>
+                </ul>
+            </li>
+            <li>분양정보
+                <ul>
+                    <li><a href="Sale_list3.html">분양리스트</a></li>
+                </ul>
+            </li>
+            <li>소통
+                <ul>
+                    <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                    <li><a href="/bbs/list/qna">질문</a></li>
+                    <li><a href="/bbs/list/Notice">공지사항</a></li>
+                </ul>
+            </li>
+            <li>공유
+                <ul>
+                    <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                    <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                </ul>
+            </li>
+            <li><a href="/MyPage">마이페이지</a></li>
+        </ul>
+    </nav>
+    <span class="login"><a href="/login">로그인</a></span>
+</header>

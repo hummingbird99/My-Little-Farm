@@ -1,0 +1,13 @@
+HiddenHttpMethodFilter란?
+Hidden 타입의 input 태그의 속성들을 읽어서 HttpServletRequestWrapper.getMethod() 반환 값을 변경해 요청된 HTTP 메소드의 타입을 PUT, DELETE, PATCH로 변경해주는 필터이다.
+
+
+업로드 기능
+
+º '글쓰기' 화면에 파일 업로드 추가하기
+º 업로드한 파일의 정보가 기록될 file 테이블 만들기 (Entity, Repository, DTO, Service 만들기)
+º 업로드한 파일 정보의 고유 ID가 board 테이블에 기록되도록 변경하기
+º BoardController의 write()에서 업로드한 파일이 서버에 저장되게 하고 board, file 테이블에 업데이트 되도록 하기
+
+업로드된 파일에 대한 데이터가 저장되게 Entity, Repository, DTO, Service를 따로 만들어야 한다.
+

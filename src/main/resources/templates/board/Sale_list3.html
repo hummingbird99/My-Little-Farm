@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분양 리스트</title>
+    <link rel="icon" type="images/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="stylesheet" href="/css/import.css">
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/js/header.js"></script>
+</head>
+
+<body class="Sale_body">
+    <header class="ColorH">
+        <h1><a href="/"><img src="/images/Color_Logo.png" alt=""></a></h1>
+        <nav>
+            <button type="button" class="bobile">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="gnb clear">
+                <li>운영정보
+                    <ul>
+                        <li><a href="/Notification_info">질병정보</a></li>
+                        <li><a href="/operation_info">작물 농사 방법</a></li>
+                    </ul>
+                </li>
+                <li>분양정보
+                    <ul>
+                        <li><a href="/Sale_list">분양리스트</a></li>
+                    </ul>
+                </li>
+                <li>소통
+                    <ul>
+                        <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                        <li><a href="/bbs/list/qna">질문</a></li>
+                        <li><a href="/bbs/list/notice">공지사항</a></li>
+                    </ul>
+                </li>
+                <li>공유
+                    <ul>
+                        <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                        <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                    </ul>
+                </li>
+                <li><a href="/MyPage">마이캘린더</a></li>
+            </ul>
+        </nav>
+        <div sec:authorize="isAnonymous()" class="login"><a href="/login">로그인 </a><a href="/signup">| 회원가입</a></div>
+        <div sec:authorize="isAuthenticated()" class="logout"><a href="#" onclick="$('#logout').submit()">로그아웃</a></div>
+
+        <form id="logout" action="/logout" method="POST">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+    </header>
+
+    <section class="mapS">
+        <h2>MapPage</h2>
+        <div class="mapbox" id="map"></div>
+        <!--  리스트 넣는곳 SJH-->
+
+
+        <div class="mapslist map_wrap" id="mapsSalelist">
+            <div class="option">
+                <div>
+                    <form onsubmit="setSaleList(keyword.value); return false;">
+                        <!-- 검색 -->
+                        키워드 : <input type="text" placeholder="검색어를 입력하세요" id="keyword" size="15">
+                        <button type="submit">검색하기</button>
+                    </form>
+                </div>
+            </div>
+            <div id="menu_wrap" class="bg_white">
+
+                <hr>
+                <ul id="placesList"></ul>
+                <div id="pagination"></div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="myModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <h3 class="modal-title">세부사항</h3>
+
+
+                    <!-- Modal body -->
+                    <div class="modal-body"></div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0a975679ecfeebf2de59d0bf803a6260&libraries=services"></script>
+
+    <script>
+        var results,    //전체 데이터 저장을 위함
+            strSearch = "",// 검색 데이터
+            arrSalelist = [], //분양리스트 구역, 제목, 위도, 경도
+            arrMarker = [], //전역변수 마커 저장 삭제를 위함
+            arrOveray = []; //전역변수 오버레이 저장 삭제를 위함
+        var saleurl = 'http://openapi.seoul.go.kr:8088/77445a7a5673736532377070516153/json/vNtcnNgc002/1/100/'; /* 분양정보 URL */
+        
+
+        //-------------------------------------------  지도 로드  ----------------------------------------------------
+
+        var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
+        var options = { //지도를 생성할 때 필요한 기본 옵션
+            center: new kakao.maps.LatLng(37.576026, 126.9768428), //지도의 중심좌표.  
+            level: 3 //지도의 레벨(확대, 축소 정도)
+        };
+
+        var map = new kakao.maps.Map(container, options); //지도 생성 및 객체 리턴
+
+        // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+        var mapTypeControl = new kakao.maps.MapTypeControl();
+
+        // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+        var zoomControl = new kakao.maps.ZoomControl();
+        map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+        // 주소를 좌표로 바꾸기 위한 geocoder 생성
+        var geocoder = new kakao.maps.services.Geocoder();
+        //-------------------------------------------  지도 로드 끝 --------------------------------------------------
+        cnt = 1;
+        const addressSearch = (idx,address) => {
+            return new Promise((resolve,reject) => {
+                //console.log("addressSearch" + address);
+                geocoder.addressSearch(address,function(result, status)  {
+                    
+                    if (status === kakao.maps.services.Status.OK) {
+                       // console.log(results[idx].RDNMADR);
+                       // console.log(results[idx].LO);
+                       // console.log(result[0].address_name);
+                       // console.log(result[0].x);
+                        results[idx].LO = result[0].x;
+                        results[idx].LA = result[0].y;
+                        console.log(cnt);
+                        cnt++;
+                        if(cnt == results.length){
+                            setSaleList("");
+                        }
+                        resolve();
+                    }
+                })
+            })
+        }
+
+        function changeXY () {
+
+            $.each(results, function (index, val) {
+
+                (async () => {
+                await addressSearch(index,results[index].RDNMADR);
+                })();
+            })
+        }
+
+        $.ajax({
+            url: saleurl, //API Call
+            dataType: "json",
+            type: "GET",
+            async: false,
+            success: function (data) {
+                results = data.vNtcnNgc002.row; //전체 분양 정보 전역변수 등록
+                changeXY ();
+            }, error: {}
+        })
+        function setSaleList(strSearch) {
+
+            //console.log("setSaleList start");
+            //return new Promise((resolve,reject) => {
+                
+                var tmp = ""; //리스트 표시
+                arrSalelist = []; //전역 변수 arrSalelist 초기화    
+                var i = 0;
+                
+                $.each(results, function (index, val) {  
+                    //console.log("setSaleList start each");
+                    if ((val.SJ.includes(strSearch)) || (val.ATDRC_CODE.includes(strSearch))) {
+
+                        tmp += "<li onclick='map_load(" + i + ");'> " + val.SJ;
+                        tmp += " <br> <span>주소 : </span> " + val.RDNMADR + "<br><span>이용대상 자치구 : </span>" + val.REQST_TRGET_CODE + " </li>"
+                        tmp += " </ul></div>";
+                        
+                        arrSalelist.push([val.ATDRC_CODE, val.SJ, val.LA, val.LO, val.REFRNC, val.RDNMADR, val.CN]);//지역구, 제목, 위도, 경도
+                        i++; //
+                    } 
+                });
+
+               // console.log("arrSalelist : " + arrSalelist.length);
+                $("#placesList").html(tmp);
+                map_load(0);
+
+        }
+        // 분양 정보 검색 리스트 항목
+
+        //리스트를 가져온 후 위치값 넣기 
+        function map_load(i) {
+            delMarkers() ; // 기존의 마커 및 오버레이 삭제
+            console.log("mapmap");
+            var strla = arrSalelist[i][2];
+            var strlo = arrSalelist[i][3];
+            var strGoo = arrSalelist[i][0];
+            var strTitle = arrSalelist[i][1];
+            var strREFRNC = arrSalelist[i][4];
+            var strRDNMADR = arrSalelist[i][5];
+            var strCN = arrSalelist[i][6];
+            var markerPosition = new kakao.maps.LatLng(strla, strlo);
+            // 마커를 생성합니다
+            marker = new kakao.maps.Marker({
+            position: markerPosition
+            })
+            marker.setMap(map);
+            
+            setCenter(strla, strlo,);
+            arrMarker.push(marker); // 마커 저장. 삭제를 위함
+            
+
+            var iwContent = '<div class="wrap">' +
+                '    <div class="info">' +
+                '        <div class="title">' + '  <div class="close" onclick="overlay.setMap(null);" title="닫기"></div>' + strTitle +
+                '        </div>' +
+                '        <div class="body">' +
+                '            <div class="desc"  onclick="showDetail('+i+');" data-toggle="modal" data-target="#myModal" target="_blank">' +
+                '                <div class="ellipsis">주소 : ' + '<button  class="btn btn-danger show MarkerButton" data-toggle="modal" data-target="#myModal" target="_blank">' + strRDNMADR + ' </button></div>' +
+                '                <div class="jibun ellipsis"> 문의 : ' + strREFRNC + ' </div>' +
+                '                <div class="jibun ellipsis"> 이용대상 자치구 : ' + strGoo + ' </div>' +
+                '            </div>' +
+                '        </div>' +
+                '    </div>' +
+                '</div>'; // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
+
+            // 마커 위에 커스텀오버레이를 표시합니다
+            // 마커를 중심으로 커스텀 오버레이를 표시하기위해 CSS를 이용해 위치를 설정했습니다
+            overlay = new kakao.maps.CustomOverlay({
+                content: iwContent,
+                map: map,
+                position: marker.getPosition()
+            });
+            overlay.setMap(map);
+            arrOveray.push(overlay); //오버레이 저장  삭제를 위함
+            
+            // 마커를 클릭했을 때 커스텀 오버레이를 표시합니다
+            kakao.maps.event.addListener(marker, 'click', function () {
+                overlay.setMap(map);
+            });
+
+            
+
+        }
+        function closeOverlay() {
+            overlay.setMap(null);
+        }
+
+        //지도 위치로 이동하기
+        function setCenter(strla, strlo) {
+            // 이동할 위도 경도 위치를 생성합니다 
+            var moveLatLon = new kakao.maps.LatLng(strla, strlo);
+            // 지도 중심을 이동 시킵니다
+            map.setCenter(moveLatLon);
+        }
+
+        function delMarkers() { //마커및 오버레이 삭제
+            for (var i = 0; i < arrMarker.length; i++) {
+                arrMarker[i].setMap(null);
+            };
+
+            for (var j = 0; j < arrOveray.length; j++) {
+                arrOveray[j].setMap(null);
+            };
+            arrMarker = [];
+            arrOveray = [];
+        }
+
+        function showDetail(idx){
+            $(".modal-body").empty();
+            var strbody = arrSalelist[idx][6];
+            strbody = "<br><br>"+strbody.replaceAll(/&lt;/g,"<").replaceAll(/&gt;/g,">").replaceAll(/&amp;nbsp;/g," ").replaceAll(/&amp;ldquo;/g, '"').replaceAll(/&amp;rdquo;/g, '"').replaceAll(/&amp;lt;/g, '<').replaceAll(/&amp;rdquo;/g, '"').replaceAll(/&amp;gt;/g, '>').replaceAll(/&amp;lsquo;/g, "'").replaceAll(/&amp;rsquo;/g, "'").replaceAll(/&amp;middot;/g, '·').replaceAll(/&amp;rarr;/g, '→').replaceAll(/&amp;times;/g, '×').replaceAll(/&amp;amp;/g, '&').replaceAll(/&amp;sim;/g, '~').replaceAll(/&amp;rArr;/g, '→').replaceAll(/&quot;/g, '\'').replaceAll(/&amp;ndash;/g, '?');
+            $(".modal-body").html(strbody);//.replaceAll("\&lt\g","<").replaceAll("\&rt\g",">");//append(arrSalelist[idx][6]);
+        //    $(".modal-body").style.
+        }
+
+    </script>
+    <script src="/js/modal.js"></script>
+
+    <footer>
+        <div>
+            <h1><a href="/">My Little Farm</a></h1>
+            <div>
+                <ul>
+                    <li>운영정보
+                        <ul>
+                            <li><a href="/Notification_info">질병정보</a></li>
+                            <li><a href="/operation_info">작물 농사 방법</a></li>
+                        </ul>
+                    </li>
+                    <li>분양정보
+                        <ul>
+                            <li><a href="/Sale_list">분양리스트</a></li>
+                        </ul>
+                    </li>
+                    <li>소통
+                        <ul>
+                            <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                            <li><a href="/bbs/list/qna">질문</a></li>
+                            <li><a href="/bbs/list/notice">공지사항</a></li>
+                        </ul>
+                    </li>
+                    <li>공유
+                        <ul>
+                            <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                            <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/MyPage">마이캘린더</a></li>
+                </ul>
+            </div>
+            <div>
+                <address>
+                    <p>E-Mail :<a href="gksrlvy7138@gmail.com"> gksrlvy7138@gmail.com</a></p>
+                    <p>" 주소 : 서울시 서초구 서초대로74길 33 비트빌 3층"</p>
+                    <p>Tel :<a href="tel:+820234863456"> 02 - 3486 - 3456</a></p>
+                </address>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

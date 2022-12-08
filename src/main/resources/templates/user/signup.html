@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>main</title>
+    <link rel="icon" type="images/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="stylesheet" href="/css/import.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/header.js"></script>
+    <script src="/js/weather.js"></script>
+    <script type="text/javascript">
+        $(function (){
+            $("input[name='userid']").on("keyup",function (){
+                var s_id = $('#userid').val();
+                console.log("s_id : "+s_id);
+
+                // ajax 호출
+                $.ajax({
+                    data : {s_id : s_id},
+                    url : "IdChek",
+                    data_type : "json",
+                    success : function (data) {
+                        console.log(data);
+                        if(data == '0'){
+
+                            console.log("사용가능한 아이디 입니다")
+
+                            $("#IdCheck").text("사용가능한 아이디 입니다!");
+                        } else if (data == "1") {
+
+                            console.log("이미 사용중인 아이디 입니다")
+
+                            $("#IdCheck").text("이미 사용중인 아이디 입니다!");
+                        }
+                    },
+                    error : function (error) {
+                        console.log(error);
+                        alert("error :" + error);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <header class="ColorH">
+    <h1><a href="/"><img src="/images/Color_Logo.png" alt=""></a></h1>
+    <nav>
+        <button type="button" class="bobile">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="gnb clear">
+            <li>운영정보
+                <ul>
+                    <li><a href="/Notification_info">질병정보</a></li>
+                    <li><a href="/operation_info ">작물 농사 방법</a></li>
+                </ul>
+            </li>
+            <li>분양정보
+                <ul>
+                    <li><a href="/Sale_list">분양리스트</a></li>
+                </ul>
+            </li>
+            <li>소통
+                <ul>
+                    <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                    <li><a href="/bbs/list/qna">질문</a></li>
+                    <li><a href="/bbs/list/notice">공지사항</a></li>
+                </ul>
+            </li>
+            <li>공유
+                <ul>
+                    <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                    <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                </ul>
+            </li>
+            <li><a href="/MyPage">마이캘린더</a></li>
+        </ul>
+    </nav>
+        <div sec:authorize="isAnonymous()" class="login"><a href="/login">로그인 </a></div>
+        <div sec:authorize="isAuthenticated()" class="logout"><a href="#" onclick="$('#logout').submit()">로그아웃</a></div>
+
+        <form id="logout" action="/logout" method="POST">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+</header>
+
+    <section class="joinSection">
+        <form th:action="@{/user}" method="POST" modelattribute="infoDto">
+            <fieldset>
+                <p>회원가입</p>
+                <h2>MY LITTLE FARM</h2>
+
+                <label for=>아이디</label>
+                <input type="text" name="userid" id="userid" placeholder="(필수)아이디를 입력해 주세요" /> <br>
+                <span class="valid" th:text="${valid_userid}"></span>
+                <span id="IdCheck" class="valid"></span>
+
+                <label for=>비밀번호</label>
+                <input type="password" name="password" placeholder="(필수)비밀번호를 입력해 주세요"> <br>
+                <span class="valid" th:text="${valid_password}"></span>
+
+                <label for=>닉네임</label>
+                <input type="text" name="nickname" placeholder="(필수)닉네임을 입력해 주세요"> <br>
+                <span class="valid" th:text="${valid_nickname}"></span>
+
+                <label for=>이름</label>
+                <input type="text" name="name" placeholder="(필수)이름을 입력해 주세요"> <br>
+                <span class="valid" th:text="${valid_name}"></span>
+
+                <label for=>E-mail</label>
+                <input type="text" name="email"  placeholder="(필수)이메일을 입력해 주세요"> <br>
+                <span class="valid" th:text="${valid_email}"></span>
+
+                <label for=>전화번호</label>
+                <input type="tel" name="tel"placeholder=" (필수) ex) 010-1234-5678"> <br>
+                <span class="valid" th:text="${valid_tel}"> <br> </span>
+
+                <label for=>주소</label>
+                <input type="text" name="address" placeholder="주소를 입력해 주세요"> <br>
+                <span class="valid" th:text="${valid_address}"> <br> </span>
+
+                <!-- <input type="radio" name="auth" value="ROLE_ADMIN,ROLE_USER"> admin -->
+                <input type="hidden" name="auth" value="ROLE_USER" checked="checked"> <br>
+            
+                <div class="signup-btn">
+                    <button type="submit">가입 하기</button>
+                </div>
+            </fieldset>
+        </form>
+        <div class="joinbgimg"></div>
+    </section>
+
+    <footer>
+    <div>
+        <h1><a href="/">My Little Farm</a></h1>
+        <div>
+            <ul>
+                <li>운영정보
+                    <ul>
+                        <li><a href="/Notification_info">질병정보</a></li>
+                        <li><a href="/operation_info">작물 농사 방법</a></li>
+                    </ul>
+                </li>
+                <li>분양정보
+                    <ul>
+                        <li><a href="/Sale_list">분양리스트</a></li>
+                    </ul>
+                </li>
+                <li>소통
+                    <ul>
+                        <li><a href="/bbs/list/standard">자유 게시판</a></li>
+                        <li><a href="/bbs/list/qna">질문</a></li>
+                        <li><a href="/bbs/list/notice">공지사항</a></li>
+                    </ul>
+                </li>
+                <li>공유
+                    <ul>
+                        <li><a href="/bbs/list/sell">내 작물 판매</a></li>
+                        <li><a href="/bbs/list/free">내 작물 무료나눔</a></li>
+                    </ul>
+                </li>
+                <li><a href="/MyPage">마이캘린더</a>
+                    <ul>
+                        <li sec:authorize="isAnonymous()" class="login" ><a href="/login">로그인</a></li>
+
+                        <form id="login" action="/logout" method="POST">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <li sec:authorize="isAuthenticated()" class="login"><a href="/logout" type="submit">로그아웃</a></li>
+                        </form>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <address>
+                <p>E-Mail :<a href="gksrlvy7138@gmail.com"> gksrlvy7138@gmail.com</a></p>
+                <p>" 주소 : 서울시 서초구 서초대로74길 33 비트빌 3층"</p>
+                <p>Tel :<a href="tel:+820234863456"> 02 - 3486 - 3456</a></p>
+            </address>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

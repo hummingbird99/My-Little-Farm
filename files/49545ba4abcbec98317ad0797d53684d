@@ -1,0 +1,143 @@
+crud
+
+create
+-> 폼(form) 데이터 주고받기 
+
+form 태그 - 어디로 어떻게 보낼지.
+
+어디로 보낼지 
+=> action=""
+
+어떻게 보낼지
+=> method=""
+
+controller에서 post매핑으로 받는다.
+
+form은 controller에 DTO 형식으로 저장.
+
+db는 sql언어로써 java를 이해하지 못한다.
+
+=> JPA를 사용하여 java와 sql을 연결시킨다.
+
+form -> DTO -> Entity(Repository) -> JPA -> DB(TABLE)
+
+ArticleController에서
+->
+public String createArticle(ArticleForm form)
+: ArticleForm form -> DTO인 폼을 받음
+
+Article article = form.toEntity(); 
+-> 폼을 엔티티로 변환
+
+Article saved = articleRepository.save(article);
+-> 엔티티로 변환 한 것을 Repository를 이용하여 db에 저장
+
+
+
+ArticleForm{title='너무 졸립네요', content='제목은 곧 내용입니다.'}
+Article{id=null, title='너무 졸립네요', content='제목은 곧 내용입니다.'}
+Article{id=1, title='너무 졸립네요', content='제목은 곧 내용입니다.'}
+
+-> 처음엔 ArticleForm 형태로 들어온 다음 id값이 null인 Article형태로 바뀐다.
+그 다음 Repository를 이용해서 db에 저장하는데, 이때 @GeneratedValue(자동 생성 어노테이션) 으로 인해 id값에 1(들어온 순서대로)이 들어간다.
+
+
+DataBase 설정 방법
+-> src - main에 application.properties 클릭
+-> spring.h2.console.enabled=true 작성.
+
+주소창에 http://localhost:8080/h2-console 입력
+바로 Connect를 누르면 접속이 안됨
+=> JDBC URL 이 매번 바뀌기 때문에.
+=> 인텔리제이 콘솔창에 ctrl + f 로 jdbc 찾기
+=>' ' 사이에 있는 주소를 복사 후 붙여넣은뒤 연결하면 된다.
+
+롬복
+- 코드를 간소화 시켜주는 라이브러리
+
+리펙토리
+- 코드의 구조 또는 성능을 개선하는 작업
+
+로깅
+- 프로그램의 수행 과정을 기록으로 남김.
+
+롬복 라이브러리 추가
+=>build.gradle에 dependencies 안에 내용 추가
+=>compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+추가 후 오른쪽 위에 코끼리를 새로고침 해준다 (강사도 터짐ㅋㅋㅋ)
+
+롬복을 이용해 DTO 리펙토링
+
+ public ArticleForm(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+
+ @Override
+    public String toString() {
+        return "ArticleForm{" +
+                "title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                '}';
+    }
+
+
+이 두가지를 지우고 간단하게
+public class 위에 @AllArgsConstructor
+@ToString 를 입력.
+
+=> 코드가 짧아짐(개선)
+
+entity 도 마찬가지로
+entity의 Article 에 있는 생성자 코드인
+public Article(Long id, String title, String content) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+    }
+를 지우고
+@AllArgsConstructor 작성
+
+또한 ToString() 코드인
+  @Override
+    public String toString() {
+        return "Article{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                '}';
+    }
+}
+
+를 지우고
+@ToString 작성
+
+
+로깅
+컨트롤러의 아티클 컨트롤러
+@Slf4j // 로깅을 위한 어노테이션
+작성
+
+System.out.println(form.toString()); 문을 지우고
+log.info(form.toString()); 작성
+
+System.out.println(article.toString()); 문을 지우고
+log.info(article.toString()); 작성
+
+System.out.println(saved.toString()); 문을 지우고
+log.info(saved.toString()); 작성
+
+
+
+
+
+
+
+
+
+
+
+
