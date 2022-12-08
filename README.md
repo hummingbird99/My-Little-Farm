@@ -11,7 +11,7 @@
 ---|---
 신제헌 | Full-stack, AI
 김채린 | Front-end
-최 준 | Back-end
+최  준 | Back-end
 한기표 | Front-end
 
 <br></br>
@@ -75,3 +75,4 @@
 
 ## 📝포스팅
 [AI 공부하기](https://screeching-tennis-202.notion.site/a0d0ea9815bc4b919f4af8f44e221060)
+<br></br>
