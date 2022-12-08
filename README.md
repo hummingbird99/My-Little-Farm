@@ -72,3 +72,6 @@
 <img src="https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white"/>
 <img src="https://img.shields.io/badge/Slack-4A154B?style=flat-square&logo=slack&logoColor=white"/>
 <br></br><br></br>
+
+## 📝포스팅
+[AI 공부하기](https://screeching-tennis-202.notion.site/a0d0ea9815bc4b919f4af8f44e221060)
